@@ -1,0 +1,142 @@
+@import "tailwindcss";
+
+@theme {
+  --color-accent: #175749;
+  --color-muted: #52625e;
+  --color-ink: #152c26;
+  --color-canvas: #f7f8f2;
+  --font-sans: system-ui, sans-serif;
+}
+
+body {
+  background: var(--color-canvas);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+}
+
+:where(a, button):focus-visible {
+  outline: 2px solid var(--color-accent);
+  outline-offset: 3px;
+}
+
+.discover-photo-frame {
+  container-type: size;
+}
+
+.discover-photo-scene {
+  --rise: 0px;
+  --solid-top: 12cqh;
+  --faint: 22cqh;
+  --haze: 34cqh;
+  --near-clear: 45cqh;
+  --opaque: 54cqh;
+  --paint-width: max(100cqw, calc(100cqh * 1280 / 595));
+  /* Undo the centered WebP crop, then follow the sharp image's 53% vertical alignment. */
+  --paint-top: calc((100cqh - var(--paint-width) * 595 / 1280) * 0.53
+    - var(--paint-width) * (2 / 3 - 595 / 1280) / 2);
+
+  position: absolute;
+  inset: calc(-1 * var(--rise)) 0 0;
+  overflow: hidden;
+  --vertical-fade: linear-gradient(
+    to bottom,
+    transparent var(--solid-top),
+    rgb(0 0 0 / 8%) var(--faint),
+    rgb(0 0 0 / 36%) var(--haze),
+    rgb(0 0 0 / 74%) var(--near-clear),
+    #000 var(--opaque)
+  );
+  mask-image: var(--vertical-fade);
+}
+
+.discover-photo-sharp {
+  position: absolute;
+  inset: auto 0 0;
+  width: 100%;
+  height: 100cqh;
+  object-fit: cover;
+  object-position: 50% 53%;
+}
+
+.discover-photo-blur {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.discover-photo-blur::before {
+  content: "";
+  position: absolute;
+  top: calc(var(--rise) + var(--paint-top));
+  left: calc((100% - var(--paint-width)) / 2);
+  width: var(--paint-width);
+  aspect-ratio: 3 / 2;
+  background: var(--discover-continuation) center / 100% 100% no-repeat;
+}
+
+.discover-photo-blur--wide {
+  mask-image: linear-gradient(#000 36cqh, transparent 56cqh);
+}
+
+.discover-photo-blur--wide::before {
+  filter: blur(34px);
+}
+
+.discover-photo-blur--medium {
+  mask-image: linear-gradient(transparent 17cqh, #000 34cqh 44cqh, transparent 60cqh);
+}
+
+.discover-photo-blur--medium::before {
+  filter: blur(12px);
+}
+
+.discover-photo-blur--light {
+  mask-image: linear-gradient(transparent 34cqh, #000 47cqh, transparent 67cqh);
+}
+
+.discover-photo-blur--light::before {
+  filter: blur(3px);
+}
+
+@media (width >= 48rem) {
+  .discover-photo-scene {
+    mask-image: none;
+    -webkit-mask-image: none;
+  }
+
+  .discover-photo-blur {
+    display: none;
+  }
+}
+
+@media (width < 48rem) {
+  .discover-photo-scene {
+    --rise: clamp(110px, 39cqw, 154px);
+    --solid-top: 0px;
+    --faint: calc(var(--rise) * 0.23);
+    --haze: calc(var(--rise) - 50px);
+    --near-clear: calc(var(--rise) - 22px);
+    --opaque: calc(var(--rise) - 7px);
+  }
+
+  .discover-photo-blur--wide {
+    mask-image: linear-gradient(#000 calc(var(--rise) - 31px), transparent calc(var(--rise) + 10px));
+  }
+
+  .discover-photo-blur--medium {
+    mask-image: linear-gradient(
+      transparent calc(var(--rise) - 108px),
+      #000 calc(var(--rise) - 36px) calc(var(--rise) + 2px),
+      transparent calc(var(--rise) + 24px)
+    );
+  }
+
+  .discover-photo-blur--light {
+    mask-image: linear-gradient(
+      transparent calc(var(--rise) - 32px),
+      #000 calc(var(--rise) - 2px) calc(var(--rise) + 8px),
+      transparent calc(var(--rise) + 36px)
+    );
+  }
+}
+
