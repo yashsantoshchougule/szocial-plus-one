@@ -21,6 +21,7 @@ export type ReviewRecord = {
   decision: Exclude<ApplicationStatus, "pending">;
   reason: string;
   eligibility_verified: boolean;
+  background_verified: boolean;
   reviewed_at: string;
 };
 
@@ -68,7 +69,7 @@ export async function reviewedApplication({ userId }: ReadySession, id: string) 
 
 export async function privateReview({ userId }: ReadySession, id: string) {
   const { rows, error } = await accountQuery<ReviewRecord>(userId,
-    "select decision, reason, eligibility_verified, reviewed_at::text from plus_one.application_reviews where application_id = $1", [id]);
+    "select decision, reason, eligibility_verified, background_verified, reviewed_at::text from plus_one.application_reviews where application_id = $1", [id]);
   return { data: rows[0], error };
 }
 

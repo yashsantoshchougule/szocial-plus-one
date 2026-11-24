@@ -21,8 +21,7 @@ export async function sharedSession() {
     },
   });
 
-  const account = await verifySharedAccount(client);
-  return account.kind === "ready" ? { ...account, client } : account;
+  return verifySharedAccount(client);
 }
 
 export type SharedAccount = Extract<Awaited<ReturnType<typeof sharedSession>>, { kind: "ready" }>;

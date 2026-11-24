@@ -38,8 +38,8 @@ export async function saveReview(id: string, _previous: FormFeedback, form: Form
   if ("message" in review) return { message: review.message };
 
   const { rows, error } = await accountQuery<{ saved: boolean }>(session.userId,
-    "select plus_one.review_application($1, $2, $3, $4) as saved",
-    [id, review.decision, review.reason, review.eligibilityVerified]);
+    "select plus_one.review_application($1, $2, $3, $4, $5) as saved",
+    [id, review.decision, review.reason, review.eligibilityVerified, review.backgroundVerified]);
 
   if (error) return { message: "The decision could not be saved. Try again." };
   if (rows[0]?.saved !== true) return { message: "This application cannot be reviewed. Open the queue for its current status." };

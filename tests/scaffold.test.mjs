@@ -1,22 +1,18 @@
 import assert from "node:assert/strict";
 import { spawn } from "node:child_process";
-import { createServer } from "node:net";
 import { once } from "node:events";
 import { setTimeout as delay } from "node:timers/promises";
 import { test } from "node:test";
 import { chromium } from "playwright";
 
 test("production serves the Plus One starter and its assets under /plus-one", async (t) => {
-  const listener = createServer().listen(0, "127.0.0.1");
-  await once(listener, "listening");
-  const { port } = listener.address();
-  listener.close();
-  await once(listener, "close");
+  const port = 3001;
   const base = `http://127.0.0.1:${port}`;
   const server = spawn(process.execPath, [
     "node_modules/next/dist/bin/next", "start", "--hostname", "127.0.0.1", "--port", String(port),
   ], { stdio: "inherit", env: {
     ...process.env, NEXT_TELEMETRY_DISABLED: "1",
+    SZOCIAL_AUTH_URL: "", SZOCIAL_AUTH_PUBLISHABLE_KEY: "", PLUS_ONE_SUPABASE_URL: "", PLUS_ONE_SUPABASE_SECRET_KEY: "",
     NEXT_PUBLIC_SUPABASE_URL: "", NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: "",
     SZOCIAL_PUBLIC_ORIGIN: "", PLUS_ONE_DATABASE_URL: "", PLUS_ONE_DISCOVER_DEMO: "",
   } });

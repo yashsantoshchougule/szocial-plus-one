@@ -6,7 +6,7 @@ import { ApplicationAccess, ApplicationDetails } from "@/features/applications/d
 export const metadata = { title: "Application status" };
 
 const statusCopy = {
-  pending: "A Szocial reviewer will check your application. You can come back here for updates.",
+  pending: "A Plus One reviewer will manually check your application and background. You can come back here for updates.",
   approved: "You can continue to team profile setup.",
   declined: "Your team member application was declined. You can still use your Szocial account.",
 };

@@ -1,5 +1,7 @@
 import "server-only";
 import { Pool, type QueryResultRow } from "pg";
+import { dataProject } from "./plus-one-project";
+import { isLoopback, matchesPlusOneDatabase } from "./project-config";
 
 let pool: Pool | undefined;
 
@@ -9,15 +11,14 @@ function databasePool() {
   if (!value) throw new Error("Plus One database is not configured");
 
   const url = new URL(value);
-  if (!["postgresql:", "postgres:"].includes(url.protocol)
-      || !/^plus_one_runtime(?:\.[a-z0-9]{20})?$/.test(decodeURIComponent(url.username))) {
-    throw new Error("Plus One requires its dedicated runtime database role");
+  const project = dataProject();
+  if (!["postgresql:", "postgres:"].includes(url.protocol) || !project || !matchesPlusOneDatabase(url, project)) {
+    throw new Error("The Plus One database must use the runtime role in the separate Plus One project");
   }
-  const local = ["localhost", "127.0.0.1", "[::1]"].includes(url.hostname);
   for (const parameter of ["host", "hostaddr", "user", "port", "dbname", "options", "uselibpqcompat"]) {
     if (url.searchParams.has(parameter)) throw new Error("Unsupported database connection parameter");
   }
-  url.searchParams.set("sslmode", local ? "disable" : "verify-full");
+  url.searchParams.set("sslmode", isLoopback(url.hostname) ? "disable" : "verify-full");
   pool = new Pool({
     connectionString: url.href,
     max: 4,

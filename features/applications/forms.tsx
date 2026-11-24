@@ -68,6 +68,7 @@ export function ReviewForm({ id }: { id: string }) {
   const [decision, setDecision] = useState("");
   const [reason, setReason] = useState("");
   const [eligibilityVerified, setEligibilityVerified] = useState(false);
+  const [backgroundVerified, setBackgroundVerified] = useState(false);
 
   return (
     <form action={action} onSubmit={(event) => submitKeepingAnswers(event, action)} aria-busy={pending} className="mt-5 space-y-4">
@@ -87,6 +88,11 @@ export function ReviewForm({ id }: { id: string }) {
           onChange={(event) => setEligibilityVerified(event.target.checked)}
         />
         I checked the applicant’s adult eligibility and identity.
+      </label>
+      <label className="flex items-start gap-2">
+        <input className="mt-1 size-4 accent-accent" type="checkbox" name="backgroundVerified" value="yes"
+          checked={backgroundVerified} onChange={(event) => setBackgroundVerified(event.target.checked)} />
+        I manually reviewed the application form and verified the applicant’s background.
       </label>
       <label className="block font-semibold">
         Private reason

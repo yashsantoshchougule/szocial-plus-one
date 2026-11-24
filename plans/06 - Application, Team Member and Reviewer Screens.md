@@ -3,6 +3,16 @@
 **Task PO-06 · Must Fix · Planned**  
 Depends on PO-03, PO-04 and PO-07. Controls profile eligibility before PO-08 enables bookings. The phone and laptop patterns follow PO-05.
 
+## Team member selection
+
+An applicant signs in with their Szocial account and submits the Plus One application. The application stays **Pending review** while an authorized Plus One admin manually reviews the form and verifies the applicant's background. The admin records **Approved** or **Declined**. Approval requires a recorded confirmation that the manual review and background verification passed. Keep the decision, reviewer, timestamp, and private notes in Plus One. The applicant sees their status.
+
+Only approved applicants can open Team profile setup or save a listing. Approval unlocks setup. A complete profile with a cover photo must be published separately before it can appear in Discover and accept bookings.
+
+The reviewer flow records identity and adult eligibility separately from the manual form review and background confirmation. Both are required for approval in the server action and database. Before rollout, define what reviewers check and which evidence, if any, Plus One retains. The migration keeps prior decisions for audit, pauses legacy listings, and returns previous approvals without recorded background verification to review.
+
+**Implementation and verification:** The approved member can save and edit a private draft, upload a cover to Plus One Storage, and publish once operations sets a rate. Pause removes the listing from Discover and resume restores it. Lint, typecheck, the production build, and all 17 local checks passed. The browser suite used separate Auth and Storage fixtures and isolated PostgreSQL on port 3001. It checked that the admin cannot approve without the manual confirmation, pending and declined applicants cannot enter setup, and a screened applicant can draft, upload, publish, edit, pause, and resume. The migration was tested against an earlier approval with its private audit record. Hosted rollout remains pending. [Operator steps](../README.md#review-applications-and-publish-team-profiles)
+
 ## Application and team profile
 
 ### T01 · Become a Team Member · `/plus-one/apply`
@@ -110,7 +120,7 @@ Reason [Text field]                               | [Approve] [Decline]
 [Approve] [Decline]
 ```
 
-Confirm the intended decision and require a private reason. Record reviewer and timestamp and prevent duplicate or stale decisions. Use an approved operations process to check adult eligibility and identity. Store the verification outcome, with private records controlled by approved retention policy. QA-09.
+Confirm the intended decision and require a private reason. Record reviewer and timestamp and prevent duplicate or stale decisions. Use the approved manual process to review the submitted form and verify identity, adult eligibility, and background. Reject approval on the server and in the database if the required confirmations are missing. Store the verification outcome, with private records controlled by approved retention policy. QA-09.
 
 ### A03 · Support queue · `/plus-one/admin/cases`
 

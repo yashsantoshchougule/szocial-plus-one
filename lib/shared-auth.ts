@@ -1,9 +1,15 @@
 import { createServerClient } from "@supabase/ssr";
+import { supabaseProjectUrl } from "./project-config";
+
+export function mainAuthProjectUrl() {
+  // The old variables are accepted only for Main Auth while deployments switch names.
+  return supabaseProjectUrl(process.env.SZOCIAL_AUTH_URL ?? Reflect.get(process.env, "NEXT_PUBLIC_SUPABASE_URL"));
+}
 
 export function authConfig() {
-  const url = Reflect.get(process.env, "NEXT_PUBLIC_SUPABASE_URL");
-  const key = Reflect.get(process.env, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
-  return typeof url === "string" && url && typeof key === "string" && key ? { url, key } : null;
+  const url = mainAuthProjectUrl();
+  const key = process.env.SZOCIAL_AUTH_PUBLISHABLE_KEY ?? Reflect.get(process.env, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY");
+  return url && typeof key === "string" && key ? { url: url.origin, key } : null;
 }
 
 export async function verifySharedAccount(client: ReturnType<typeof createServerClient>) {

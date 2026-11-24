@@ -13,9 +13,6 @@ begin
 end;
 $boundary$;
 
-insert into auth.users (id) values
-  ('00000003-0000-4000-8000-000000000001'),
-  ('00000003-0000-4000-8000-000000000002');
 insert into plus_one.staff_roles (user_id, role) values ('00000003-0000-4000-8000-000000000002', 'reviewer');
 insert into plus_one.account_settings (user_id) values ('00000003-0000-4000-8000-000000000002');
 

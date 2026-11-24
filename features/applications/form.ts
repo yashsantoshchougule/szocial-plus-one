@@ -42,6 +42,7 @@ export function readReviewDecision(form: FormData) {
   const value = form.get("reason");
   const reason = typeof value === "string" ? value.trim() : "";
   const eligibilityVerified = form.get("eligibilityVerified") === "yes";
+  const backgroundVerified = form.get("backgroundVerified") === "yes";
 
   if (decision !== "approved" && decision !== "declined") {
     return { message: "Choose whether to approve or decline the application." } as const;
@@ -52,8 +53,11 @@ export function readReviewDecision(form: FormData) {
   if (decision === "approved" && !eligibilityVerified) {
     return { message: "Confirm that adult eligibility and identity have been checked before approving." } as const;
   }
+  if (decision === "approved" && !backgroundVerified) {
+    return { message: "Confirm the manual form review and background check before approving." } as const;
+  }
 
-  return { decision, reason, eligibilityVerified } as const;
+  return { decision, reason, eligibilityVerified, backgroundVerified } as const;
 }
 
 export const isApplicationId = (id: string) =>

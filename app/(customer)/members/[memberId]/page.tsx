@@ -7,6 +7,10 @@ import { findMember } from "@/features/discover/data";
 import { discoverDemoEnabled, findDemoMember } from "@/features/discover/demo";
 import { activityLabel, hourlyRate, isMemberId } from "@/features/discover/filters";
 import { BookingState, MemberPhoto } from "@/features/discover/member-card";
+import { findProfilePosts } from "@/features/discover/profile-posts-data";
+import { postableProfileId } from "@/features/discover/post-publisher";
+import { ProfilePostsGallery } from "@/features/discover/profile-posts-gallery";
+import { ShareProfile } from "@/features/discover/share-profile";
 
 export const metadata = { title: "Team member" };
 
@@ -19,12 +23,29 @@ export default async function MemberPage({ params }: { params: Promise<{ memberI
 
   const demoMember = discoverDemoEnabled() ? findDemoMember(memberId) : undefined;
   const member = profile?.member ?? demoMember;
+  const [gallery, ownProfile] = session.kind === "ready" && profile?.member
+    ? await Promise.all([findProfilePosts(session, profile.member.id), postableProfileId(session.userId)])
+    : [null, null];
+  const posts = gallery?.posts ?? demoMember?.posts ?? [];
+  const showPosts = Boolean(gallery?.error || posts.length);
   return (
     <>
-      <Link href="/discover" className="mb-4 inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Back to Discover</Link>
+      <div className="mb-4 flex flex-wrap items-center gap-x-4 gap-y-2">
+        <Link href="/discover" className="inline-flex min-h-11 items-center font-semibold text-accent underline underline-offset-4">Back to Discover</Link>
+        {member && <ShareProfile origin={process.env.SZOCIAL_PUBLIC_ORIGIN} memberId={member.id} name={member.display_name} />}
+        {ownProfile && ownProfile === member?.id && (
+          <Link href="/team/setup#create-post" className="inline-flex min-h-11 items-center rounded-xl bg-accent px-3 font-semibold text-white">Create post</Link>
+        )}
+      </div>
       {member ? (
-        <div className="grid items-start gap-6 lg:grid-cols-2 lg:gap-10">
+        <div className={showPosts ? "mx-auto grid min-w-0 max-w-2xl gap-6" : "grid items-start gap-6 lg:grid-cols-2 lg:gap-10"}>
           <MemberPhoto photoUrl={member.photoUrl} name={member.display_name} detail />
+          {gallery?.error ? (
+            <section aria-label="Posts">
+              <h2 className="text-xl font-semibold">Posts</h2>
+              <p className="mt-2 text-sm text-muted">Posts are temporarily unavailable.</p>
+            </section>
+          ) : posts.length > 0 ? <ProfilePostsGallery posts={posts} /> : null}
           <div className="min-w-0 rounded-2xl border border-[#d9e2d7] bg-white p-6 sm:p-8">
             {demoMember && <p className="mb-2 text-sm font-medium text-muted">Demo profile</p>}
             <h1 className="font-serif text-4xl break-words tracking-tight">{member.display_name}</h1>

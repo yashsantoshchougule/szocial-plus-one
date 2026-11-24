@@ -1,5 +1,6 @@
 import "server-only";
 import { accountQuery } from "@/lib/plus-one-db";
+import { plusOneStorage } from "@/lib/plus-one-project";
 import type { SharedAccount } from "@/lib/server-session";
 import type { DiscoverFilters } from "./filters";
 
@@ -16,13 +17,14 @@ type DirectoryRow = Listing & { cover_key: string; published_at: string };
 type MemberRow = Listing & { cover_key: string; bio: string; languages: string[] };
 export type DirectoryCard = Listing & { photoUrl?: string };
 
-const bucket = "plus-one-discover-covers";
+export const discoverCoverBucket = "plus-one-discover-covers";
 const pageSize = 12;
 const cardFields = "id, display_name, area, activities, hourly_rate_paise, busy, cover_key";
 
-async function signCovers(account: SharedAccount, keys: string[]) {
-  if (!keys.length) return new Map<string, string>();
-  const { data } = await account.client.storage.from(bucket).createSignedUrls(keys, 120);
+export async function signCovers(keys: string[]) {
+  const storage = keys.length ? plusOneStorage() : null;
+  if (!storage) return new Map<string, string>();
+  const { data } = await storage.from(discoverCoverBucket).createSignedUrls(keys, 120);
   return new Map((data ?? []).flatMap(({ path, signedUrl }) => path && signedUrl ? [[path, signedUrl]] : []));
 }
 
@@ -54,7 +56,7 @@ export async function findMembers(account: SharedAccount, filters: DiscoverFilte
   if (error) return { cards: [], next: null, error };
 
   const page = rows.slice(0, pageSize);
-  const covers = await signCovers(account, page.map(({ cover_key }) => cover_key));
+  const covers = await signCovers(page.map(({ cover_key }) => cover_key));
   const cards: DirectoryCard[] = page.map((row) => ({
     id: row.id, display_name: row.display_name, area: row.area, activities: row.activities,
     hourly_rate_paise: row.hourly_rate_paise, busy: row.busy, photoUrl: covers.get(row.cover_key),
@@ -72,6 +74,6 @@ export async function findMember(account: SharedAccount, memberId: string) {
   if (!member) return { member: null, error };
 
   const { cover_key, ...profile } = member;
-  const covers = await signCovers(account, [cover_key]);
+  const covers = await signCovers([cover_key]);
   return { member: { ...profile, photoUrl: covers.get(cover_key) }, error };
 }

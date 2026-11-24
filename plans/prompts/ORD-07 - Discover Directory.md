@@ -52,3 +52,52 @@ Chrome verified all four portrait loads and profile links, plus mobile filtering
 ### Activity filter follow-up
 
 Changing Activity now submits the same Discover search immediately and keeps the scroll position. The search button still applies a typed area. In the local demo, City outings showed only Arjun Mehta, Any activity restored all four profiles, and the Powai search returned Ananya Rao. Lint, type-check, production build and all 11 regression checks passed.
+
+### Profile posts and sharing
+
+**Status** Implemented and verified locally. Hosted rollout is pending. The November 23 feature brief specifies operator-managed, caption-free posts and sharing an eligible profile. It supersedes the earlier caption and posting-control sketches for this feature.
+
+Baseline through Discover on port 3001: Meera's profile opens with its cover, details, and paid-chat message. At 320 px the details fall below the photo without overflow; at 1280 px the current layout is two columns. Preserve that layout for zero posts. Place Posts between the cover and details for populated profiles.
+
+1. Add the private post and photo migration, reuse the Discover eligibility projection, and serve WebP photos through a verified read-only route and restrictive Storage policies.
+2. Add the grid and accessible photo viewer, plus an exact profile share URL using the existing login return path.
+3. Verify database permissions and the production Discover entry point with synthetic accounts and photos on website port 3001. Record hosted checks separately.
+4. Document draft, upload, publication, and recovery in the README. Unpublish to remove subsequent access. A website rollback can leave the additive private migration and retained drafts in place.
+
+**Results** The profile now has a read-only gallery between the cover and details, plus a Share profile button for every viewable member. The migration adds a private bucket and read projection. Each photo request rechecks the viewer, publication, and current member eligibility. The README covers the two-photo publish and unpublish workflow.
+
+| Check | Result |
+| --- | --- |
+| `npm run lint`, `npm run typecheck`, `npm run build` | Passed. |
+| `npm run test:browser` | 13 passed. Chrome opened the populated profile from Discover, checked five viewport widths, swiped using touch input, and verified buttons, keyboard navigation, focus and scroll restoration, photo and query errors, and the no-posts layout. |
+| Sharing and sign-in | Synthetic browser APIs verified the native share payload, cancellation, clipboard fallback, and manual selection. A second synthetic session opened the exact link. The signed-out request returned the exact member path to Szocial login. |
+| `tests/database/profile-posts.sql` | Passed on PGlite. Eligible photos were readable, draft and ineligible photos stayed hidden, and guest, ordinary, and owner permissions were checked against a broad fixture policy. Chrome also verified that a previously accessible photo returned 404 after unpublishing. |
+
+Real-device sharing, authorized staging Storage checks, and the shared Szocial login round trip remain pending. The project owner applies the hosted migration and deploys the website. Drive publication remains pending the hosted gate.
+
+### Meera's demo photo posts
+
+Use the existing fictional portrait as the ImageGen reference. Create one post with four traditional outfits and one with two western dresses. Use distinct full body, half body, selfie, and posed compositions. Encode the six photos as web assets. Supply them through the existing gallery only when standalone demo mode is enabled, then verify both posts from Discover on port 3001.
+
+**Results** The existing gallery shows four traditional photos in Meera's first demo post and two western dress photos in her second. The six WebP files are in [Meera's demo assets](../../public/discover/demo/meera-posts/).
+
+Chrome on port 3001 verified both tiles from Discover, decoded all six photos, advanced through a real touch swipe and keyboard controls, restored focus, and checked widths of 320, 390, and 1280 px. Arjun's profile still omits Posts. Lint, type checks, and the production build passed.
+
+**Image prompts** Built-in ImageGen used the existing Meera portrait as its identity reference. Each call asked for one realistic lifestyle photo of the same fictional adult, preserving her facial structure, complexion, dark eyes, and wavy hair. Each specified natural skin texture, realistic anatomy, one subject, and no panels, text, visible logos, or watermarks.
+
+| Asset | Shot prompt |
+| --- | --- |
+| `traditional-saree.webp` | Full body head to toe, including shoes, standing relaxed on the steps of a shaded Mumbai heritage courtyard, with a softly smiling expression. She wears an emerald silk saree with a fine gold border and small gold earrings. Keep her face near the upper third but visible in a center square crop. Portrait frame. |
+| `traditional-kurta.webp` | Waist-up candid portrait at a carved wood window in warm daylight, in an ivory embroidered kurta with an indigo dupatta. Her shoulder leans lightly against the frame as she looks over with a quiet smile. Portrait frame. |
+| `traditional-selfie.webp` | Casual front-camera selfie, close head-and-shoulders framing with subtle arm's-length perspective and natural expression. She is on a quiet balcony with potted jasmine and wears a rose pink chikankari kurta with simple jhumkas. No visible phone. Square composition. |
+| `traditional-lehenga.webp` | Three-quarter-length posed portrait in a deep plum lehenga with restrained gold embroidery and a draped dupatta, at a softly lit sandstone arch. Relaxed posture and naturally placed hands. Portrait frame. |
+| `western-dress.webp` | Full body head to toe with head and shoes comfortably inside the frame, taking a casual step past an old bookshop window in a slate blue sleeveless belted midi dress with simple flats. Candid natural street photograph, warm daylight. Portrait frame. |
+| `western-portrait.webp` | Half-body seated portrait at a leafy cafe window in a rust red one-piece wrap dress, with subtle gold hoops. Frame from the waist up as she turns toward the photographer with a natural, unposed smile. Portrait frame. |
+
+### Team member publishing
+
+The latest request expands operator-only posting to approved members with an eligible profile. Add a form in Team setup and keep the existing three-column profile grid and swipe viewer. The browser sends one ordered group of photos to a verified server action. The action validates and re-encodes the images, uploads to the existing private bucket, and uses a dedicated SQL function to publish the post and its slides together. The database derives the profile from the verified actor. Verify owner publishing, ordinary-account denial, invalid media, and the Discover result on 3001. Apply the additive migration only in an authorized environment. The operator can unpublish any post via the existing runbook.
+
+**Results** Eligible profile owners now have a Create post link leading to Team setup. The first photo becomes the thumbnail for the full swipeable post. The public profile uses a compact grid and a labelled Posts header with a grid icon. Browser accounts still have no direct Storage write permission.
+
+Lint, typecheck, the production build, and all 14 local tests passed. At 320 px, the eligible owner rejected a fake WebP, uploaded two photos, and returned to their profile. A separate account viewed both photos in order through Discover and had no publishing access. The isolated database checks also passed for missing uploads and paused profiles. Hosted migration and real Storage uploads are pending staging verification. [Supabase standard uploads](https://supabase.com/docs/guides/storage/uploads/standard-uploads).

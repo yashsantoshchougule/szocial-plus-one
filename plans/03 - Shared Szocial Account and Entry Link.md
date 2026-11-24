@@ -5,6 +5,8 @@ Depends on PO-01 and PO-02 for the staging scaffold. Owners: Szocial Auth and de
 
 ## Baseline and contract
 
+Main Szocial is the identity provider. Plus One must use a separate Supabase project for business data, private Storage, credentials, and roles. The verified Main account UUID is the shared reference. See [Order 02's current requirement](prompts/ORD-02%20-%20Shared%20Szocial%20Account.md#current-requirement--share-sign-in-only) for the split and acceptance checks.
+
 Szocial main at `cc0cd335` uses a browser-local resident login. Branch `feature/szocial-supabase-auth-storage` at `1c34f03c` adds Supabase SSR, PKCE callbacks, resident account status, role records, middleware, and an auth/browser test suite. Its handoff describes isolated tests and external verification still required for hosted Auth, OAuth, Storage and payments. The implementation anchor is main with the reviewed Auth work integrated. [Resident auth baseline](https://github.com/vishv-tech/Szocial/blob/cc0cd335b21641806e3b82621878ca79d2814133/lib/resident-auth.ts) · [Feature branch handoff](https://github.com/vishv-tech/Szocial/blob/1c34f03c11cf992d97a1c7008e6a22d336211859/docs/supabase-delivery.md)
 
 Both apps use the verified Supabase user ID and Szocial active account status. Szocial handles login and onboarding. Use verified recovery or explicit onboarding for legacy local accounts. Preserve only user-authorized, redacted legacy exports when applicable. A browser storage flag never grants access.

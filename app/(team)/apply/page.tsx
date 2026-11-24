@@ -26,7 +26,7 @@ export default async function ApplyPage() {
             <ApplicationForm />
           </section>
           <aside>
-            <RouteState title="How review works" description="Your application is private to you and authorized Szocial reviewers. You can check its status on this website. Approval unlocks team profile setup." />
+            <RouteState title="How review works" description="An authorized Plus One reviewer checks your form and background manually. Your application is private. You can check its status here, and approval unlocks team profile setup." />
           </aside>
         </div>
       )}

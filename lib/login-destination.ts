@@ -4,12 +4,16 @@ export function plusOneReturnPath(path: string) {
   return paths.test(path) && !/\s/.test(path) ? path : "/plus-one";
 }
 
-export function szocialLoginUrl(origin: string, pathname: string) {
+export function szocialOrigin(origin: string) {
   const site = new URL(origin);
   if (!["http:", "https:"].includes(site.protocol) || site.href !== site.origin + "/") {
     throw new Error("SZOCIAL_PUBLIC_ORIGIN must be a web origin");
   }
-  const login = new URL("/login", site);
+  return site.origin;
+}
+
+export function szocialLoginUrl(origin: string, pathname: string) {
+  const login = new URL("/login", szocialOrigin(origin));
   login.searchParams.set("returnTo", plusOneReturnPath(pathname));
   return login;
 }

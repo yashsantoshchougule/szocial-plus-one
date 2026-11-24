@@ -1,5 +1,26 @@
 # ORD-02 — Shared Szocial sign-in and private database schema
 
+## Current requirement — share sign-in only
+
+This replaces the earlier same-project data design recorded below. Main Szocial owns login, sessions, and account status. Plus One verifies the Main session on the server and uses the verified user UUID as its account reference. Main business profiles, application data, and credentials for its database or Storage are outside the Plus One boundary. There is no second sign-in.
+
+Plus One uses a separate Supabase project with its own PostgreSQL database, private Storage, runtime credentials, and roles. That project owns applications, reviewers, profiles, posts, media, availability, bookings, payments, chat, and support. Same-origin routing under `/plus-one` and allowlisted login return paths remain part of the entry flow.
+
+1. Split the Main Auth and Plus One data configuration explicitly. Keep the Main SSR client limited to sign-in/session verification. Use Plus One credentials for every database and Storage operation. For protected media, verify the Main session and Plus One eligibility on the server before reading from Plus One Storage.
+2. Replace Plus One foreign keys into `auth.users` with local identity references. Bind those IDs through the already verified Main session, without copying passwords, tokens, contact details, or Main business profiles. Keep Plus One roles local. If needed, consume Main account eligibility through the Auth contract. Agree on account deletion and retention behavior before replacing the existing same-database cascades.
+3. Inspect migration history in an authorized target before applying SQL. Use a clean split baseline for a new Plus One database. If earlier Plus One data already exists elsewhere, reconcile and move only its records and files via a separately reviewed migration.
+4. Verify with separate Auth and data endpoints and credentials. Check one-click entry, profile deep links, refresh, sign-out, and disabled access. Prove that Plus One can work with no credentials for Main business data and that a Main session cannot read Plus One data or Storage directly. Rerun application, profile publishing and protected media checks after the split.
+
+**Status** The split is implemented and verified locally. Staging still requires two authorized Supabase projects and the shared entry on Main Szocial. The earlier verification below applies to the same-project prototype.
+
+The new migration `20261123100000_plus_one_separate_data_project.sql` keeps the existing user UUIDs and foreign keys between Plus One records. It removes cross-service references to local Auth user rows and denies direct browser access to the two private media buckets. Plus One verifies each post-photo request before reading it with its own server key. Cover URLs are signed in batches from Plus One Storage after the directory eligibility query. The runtime validates that its database connection and Storage URL point to the Plus One project and that this project differs from Main Auth.
+
+Lint, typecheck, the production build, and all 15 local checks passed. Chrome used distinct loopback Auth and Storage services plus an isolated PostgreSQL database with no local Auth users. The suite covered session refresh, login return paths, disabled and signed-out access, application review, directory covers, two-photo publishing and reading, and denial of direct Storage access with a Main session. Main Auth received only Auth requests. The separate media service accepted the Plus One server key only, apart from the previously issued signed cover requests.
+
+Before opening the Main entry in staging, apply the migrations to the Plus One project, set the matching [configuration](../../README.md#shared-szocial-integration), and rerun the two-project boundary checks with real staging accounts. If the cutover fails, disable the Plus One entry while the configuration is fixed. Keep existing records and Storage files in place so the cutover can be retried.
+
+[Supabase server-side Auth](https://supabase.com/docs/guides/auth/server-side/creating-a-client?framework=nextjs) · [Supabase private Storage](https://supabase.com/docs/guides/storage/buckets/fundamentals) · [PostgreSQL schemas](https://www.postgresql.org/docs/current/ddl-schemas.html)
+
 ## Baseline
 
 Main Szocial checkout `C:/yash/projects/zsocial` is on `main` at `cc0cd335b21641806e3b82621878ca79d2814133`. Resident login sets browser-local state and has no verified Supabase session to share. The separate Auth branch at `1c34f03c11cf992d97a1c7008e6a22d336211859` has root-scoped Supabase SSR cookies, password and PKCE authentication, server user checks, refresh in middleware, and logout via its Auth endpoint. Its login destination currently returns Home, business dashboard, or onboarding. Its Next config has no Plus One forwarding. The authorized implementation directory is the Plus One repository.

@@ -35,10 +35,10 @@ begin
   if has_schema_privilege('authenticated', 'plus_one', 'USAGE') then
     raise exception 'Browser users can directly access the Plus One business schema.';
   end if;
-  if (select count(*) from storage.objects where bucket_id = 'plus-one-discover-covers') <> 13
+  if exists (select 1 from storage.objects where bucket_id = 'plus-one-discover-covers')
     or (select count(*) from storage.objects where bucket_id = 'unrelated-fixture-bucket') <> 1
     or (select count(*) from storage.objects where bucket_id is null) <> 1 then
-    raise exception 'Storage should permit only eligible covers without changing other buckets.';
+    raise exception 'Browser Storage access should deny covers and preserve unrelated buckets.';
   end if;
   begin
     insert into storage.objects(bucket_id, name) values ('plus-one-discover-covers', 'untrusted.webp');

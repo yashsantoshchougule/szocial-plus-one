@@ -38,6 +38,7 @@ export default async function ReviewDetailPage({ params }: { params: Promise<{ a
           {review?.data && (
             <dl className="mt-4 space-y-3">
               <div><dt className="font-semibold">Private reason</dt><dd className="break-words whitespace-pre-wrap">{review.data.reason}</dd></div>
+              <div><dt className="font-semibold">Manual background verification</dt><dd>{review.data.background_verified ? "Confirmed" : "Not confirmed"}</dd></div>
               <div><dt className="font-semibold">Recorded</dt><dd><time dateTime={review.data.reviewed_at}>{new Intl.DateTimeFormat("en-IN", { dateStyle: "medium", timeStyle: "short", timeZone: "Asia/Kolkata" }).format(new Date(review.data.reviewed_at))} IST</time></dd></div>
             </dl>
           )}
